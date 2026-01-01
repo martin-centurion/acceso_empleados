@@ -3,7 +3,7 @@
 Web app para registrar ingreso/egreso de empleados con QR por sucursal, geolocalizacion y reportes CSV.
 
 ## Estructura
-- `server/`: API Node/Express + PostgreSQL
+- `server/`: API Node/Express + Supabase
 - `client/`: React + Vite
 
 ## Requisitos
