@@ -154,6 +154,7 @@ function CheckPage() {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resultModal, setResultModal] = useState(null);
 
   const [geo, setGeo] = useState({
     status: 'idle',
@@ -208,6 +209,7 @@ function CheckPage() {
     setLoading(true);
     setError('');
     setStatus(null);
+    setResultModal(null);
 
     try {
       const response = await api.post('/public/check', {
@@ -227,10 +229,22 @@ function CheckPage() {
         employee: response.data.employee,
         branch: response.data.branch,
       });
+      const actionLabel = response.data.action === 'IN' ? 'Ingreso' : 'Egreso';
+      setResultModal({
+        type: 'success',
+        title: 'Registro exitoso',
+        message: `Registro de ${actionLabel} para ${response.data.employee.full_name}.`,
+      });
       setEmployeeCode('');
       setPin('');
     } catch (err) {
-      setError(err.response?.data?.error || 'No se pudo registrar');
+      const message = err.response?.data?.error || 'No se pudo registrar';
+      setError(message);
+      setResultModal({
+        type: 'error',
+        title: 'No se pudo registrar',
+        message,
+      });
     } finally {
       setLoading(false);
     }
@@ -324,17 +338,37 @@ function CheckPage() {
               </button>
             </div>
           </div>
-          {error && <div className="notice error">{error}</div>}
-          {status && (
-            <div className="notice success">
-              Registro {status.action} OK para {status.employee.full_name}.
-            </div>
-          )}
           <button className="btn primary" type="submit" disabled={loading}>
             {loading ? 'Registrando...' : 'Registrar'}
           </button>
         </form>
       </section>
+
+      {resultModal && (
+        <div className="modal-backdrop" onClick={() => setResultModal(null)}>
+          <div
+            className={`modal-card status-modal ${resultModal.type}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="status-icon" aria-hidden="true">
+              {resultModal.type === 'success' ? (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                  <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm124.9 171.3l-136 136c-4.5 4.5-10.6 7-17 7s-12.5-2.5-17-7l-72-72c-9.4-9.4-9.4-24.6 0-33.9l33.9-33.9c9.4-9.4 24.6-9.4 33.9 0l38.1 38.1 102.1-102.1c9.4-9.4 24.6-9.4 33.9 0l33.9 33.9c9.4 9.4 9.4 24.6 0 33.9z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                  <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm71.1 313.1c-9.4 9.4-24.6 9.4-33.9 0L256 289.9l-37.2 37.2c-9.4 9.4-24.6 9.4-33.9 0l-33.9-33.9c-9.4-9.4-9.4-24.6 0-33.9l37.2-37.2-37.2-37.2c-9.4-9.4-9.4-24.6 0-33.9l33.9-33.9c9.4-9.4 24.6-9.4 33.9 0l37.2 37.2 37.2-37.2c9.4-9.4 24.6-9.4 33.9 0l33.9 33.9c9.4 9.4 9.4 24.6 0 33.9l-37.2 37.2 37.2 37.2c9.4 9.4 9.4 24.6 0 33.9l-33.9 33.9z" />
+                </svg>
+              )}
+            </div>
+            <h3>{resultModal.title}</h3>
+            <p>{resultModal.message}</p>
+            <button className="btn primary" type="button" onClick={() => setResultModal(null)}>
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
