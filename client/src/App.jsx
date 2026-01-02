@@ -531,17 +531,20 @@ function AdminDashboard({ onLogout }) {
 
   const loadEmployees = async () => {
     const response = await api.get('/employees');
-    setEmployees(response.data.employees);
+    const list = Array.isArray(response.data?.employees) ? response.data.employees : [];
+    setEmployees(list);
   };
 
   const loadBranches = async () => {
     const response = await api.get('/branches');
-    setBranches(response.data.branches);
+    const list = Array.isArray(response.data?.branches) ? response.data.branches : [];
+    setBranches(list);
   };
 
   const loadEvents = async (params) => {
     const response = await api.get('/reports/attendance', { params });
-    setEvents(response.data.events);
+    const list = Array.isArray(response.data?.events) ? response.data.events : [];
+    setEvents(list);
   };
 
   useEffect(() => {
@@ -602,23 +605,23 @@ function AdminDashboard({ onLogout }) {
 
       {activeTab === 'employees' && (
         <EmployeesPanel
-          employees={employees}
+          employees={Array.isArray(employees) ? employees : []}
           onRefresh={() => loadEmployees()}
           onStatus={handleStatus}
         />
       )}
       {activeTab === 'branches' && (
         <BranchesPanel
-          branches={branches}
+          branches={Array.isArray(branches) ? branches : []}
           onRefresh={() => loadBranches()}
           onStatus={handleStatus}
         />
       )}
       {activeTab === 'reports' && (
         <ReportsPanel
-          events={events}
-          employees={employees}
-          branches={branches}
+          events={Array.isArray(events) ? events : []}
+          employees={Array.isArray(employees) ? employees : []}
+          branches={Array.isArray(branches) ? branches : []}
           onRefresh={(params) => loadEvents(params)}
         />
       )}
