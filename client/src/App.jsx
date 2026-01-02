@@ -771,66 +771,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
           </button>
         </form>
 
-        <div className="table-wrap employees-table">
-          <h3>Empleados</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Codigo</th>
-                <th>Nombre</th>
-                <th>Telefono</th>
-                <th>Ingreso</th>
-                <th>Baja</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((employee) => (
-                <tr key={employee.id}>
-                  <td>{employee.code}</td>
-                  <td>{employee.full_name}</td>
-                  <td>{employee.phone || '-'}</td>
-                  <td>{formatDate(employee.hire_date)}</td>
-                  <td>{formatDate(employee.termination_date)}</td>
-                  <td>{employee.is_active ? 'Activo' : 'Inactivo'}</td>
-                  <td className="actions">
-                    <button
-                      className="btn ghost"
-                      type="button"
-                      onClick={() => handleToggle(employee)}
-                    >
-                      {employee.is_active ? 'Dar de baja' : 'Reactivar'}
-                    </button>
-                    <button
-                      className="btn ghost"
-                      type="button"
-                      onClick={() => handleEdit(employee)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="btn ghost"
-                      type="button"
-                      onClick={() => handlePin(employee)}
-                    >
-                      PIN
-                    </button>
-                    <button
-                      className="btn ghost"
-                      type="button"
-                      onClick={() => handleDelete(employee)}
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="employee-list-mobile">
+        <div className="employee-list">
           <h3>Empleados</h3>
           {employees.length === 0 ? (
             <p className="muted">No hay empleados cargados.</p>

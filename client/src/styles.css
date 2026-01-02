@@ -506,8 +506,8 @@ small {
   overflow-x: auto;
 }
 
-.employee-list-mobile {
-  display: none;
+.employee-list {
+  margin-top: 0;
 }
 
 .employee-cards {
@@ -719,16 +719,6 @@ td {
   input,
   select {
     font-size: 16px;
-  }
-}
-
-@media (max-width: 720px) {
-  .employees-table {
-    display: none;
-  }
-
-  .employee-list-mobile {
-    display: block;
   }
 }
 
