@@ -9,7 +9,7 @@ router.get('/employees', async (req, res) => {
     const onlyActive = req.query.active === '1' || req.query.active === 'true';
     let query = supabase
       .from('employees')
-      .select('id, code, full_name, is_active, created_at')
+      .select('id, code, full_name, phone, hire_date, termination_date, is_active, created_at')
       .order('full_name', { ascending: true });
 
     if (onlyActive) {
@@ -30,9 +30,11 @@ router.get('/employees', async (req, res) => {
 
 router.post('/employees', async (req, res) => {
   try {
-    const { code, full_name, pin } = req.body || {};
+    const { code, full_name, pin, phone, hire_date } = req.body || {};
     const normalizedCode = code ? String(code).trim() : '';
     const normalizedName = full_name ? String(full_name).trim() : '';
+    const normalizedPhone = phone ? String(phone).trim() : null;
+    const normalizedHireDate = hire_date ? String(hire_date).trim() : null;
 
     if (!normalizedCode || !normalizedName) {
       return res.status(400).json({ error: 'code and full_name are required' });
@@ -45,9 +47,11 @@ router.post('/employees', async (req, res) => {
       .insert({
         code: normalizedCode,
         full_name: normalizedName,
+        phone: normalizedPhone || null,
+        hire_date: normalizedHireDate || null,
         pin_hash: pinHash,
       })
-      .select('id, code, full_name, is_active, created_at');
+      .select('id, code, full_name, phone, hire_date, termination_date, is_active, created_at');
 
     if (error) {
       if (error.code === '23505') {
@@ -66,12 +70,27 @@ router.post('/employees', async (req, res) => {
 router.patch('/employees/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { full_name, pin, is_active } = req.body || {};
+    const { full_name, pin, is_active, phone, hire_date, termination_date } = req.body || {};
 
     const updates = {};
 
     if (full_name !== undefined) {
       updates.full_name = full_name;
+    }
+
+    if (phone !== undefined) {
+      const normalizedPhone = phone ? String(phone).trim() : null;
+      updates.phone = normalizedPhone || null;
+    }
+
+    if (hire_date !== undefined) {
+      const normalizedHireDate = hire_date ? String(hire_date).trim() : null;
+      updates.hire_date = normalizedHireDate || null;
+    }
+
+    if (termination_date !== undefined) {
+      const normalizedTerminationDate = termination_date ? String(termination_date).trim() : null;
+      updates.termination_date = normalizedTerminationDate || null;
     }
 
     if (pin !== undefined) {
@@ -94,7 +113,7 @@ router.patch('/employees/:id', async (req, res) => {
       .from('employees')
       .update(updates)
       .eq('id', id)
-      .select('id, code, full_name, is_active, created_at');
+      .select('id, code, full_name, phone, hire_date, termination_date, is_active, created_at');
 
     if (error) {
       throw error;
@@ -108,6 +127,23 @@ router.patch('/employees/:id', async (req, res) => {
   } catch (err) {
     console.error('Failed to update employee', err);
     return res.status(500).json({ error: 'Failed to update employee' });
+  }
+});
+
+router.delete('/employees/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase.from('employees').delete().eq('id', id);
+    if (error) {
+      if (error.code === '23503') {
+        return res.status(409).json({ error: 'El empleado tiene registros' });
+      }
+      throw error;
+    }
+    return res.status(204).send();
+  } catch (err) {
+    console.error('Failed to delete employee', err);
+    return res.status(500).json({ error: 'Failed to delete employee' });
   }
 });
 

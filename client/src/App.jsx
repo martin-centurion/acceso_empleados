@@ -627,9 +627,22 @@ function AdminDashboard({ onLogout }) {
 }
 
 function EmployeesPanel({ employees, onRefresh, onStatus }) {
-  const [form, setForm] = useState({ code: '', full_name: '', pin: '' });
+  const [form, setForm] = useState({
+    code: '',
+    full_name: '',
+    phone: '',
+    hire_date: '',
+    pin: '',
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const formatDate = (value) => {
+    if (!value) return '-';
+    const [year, month, day] = value.split('-');
+    if (!year || !month || !day) return value;
+    return `${day}/${month}/${year}`;
+  };
 
   const handleCreate = async (event) => {
     event.preventDefault();
@@ -638,7 +651,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
 
     try {
       await api.post('/employees', form);
-      setForm({ code: '', full_name: '', pin: '' });
+      setForm({ code: '', full_name: '', phone: '', hire_date: '', pin: '' });
       await onRefresh();
       onStatus('Empleado creado');
     } catch (err) {
@@ -649,14 +662,35 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
   };
 
   const handleToggle = async (employee) => {
-    await api.patch(`/employees/${employee.id}`, { is_active: !employee.is_active });
+    if (employee.is_active) {
+      const today = new Date().toISOString().slice(0, 10);
+      const date = window.prompt('Fecha de baja (YYYY-MM-DD)', employee.termination_date || today);
+      if (date === null) return;
+      await api.patch(`/employees/${employee.id}`, {
+        is_active: false,
+        termination_date: date || null,
+      });
+    } else {
+      await api.patch(`/employees/${employee.id}`, {
+        is_active: true,
+        termination_date: null,
+      });
+    }
     await onRefresh();
   };
 
-  const handleRename = async (employee) => {
-    const name = window.prompt('Nuevo nombre', employee.full_name);
-    if (!name) return;
-    await api.patch(`/employees/${employee.id}`, { full_name: name });
+  const handleEdit = async (employee) => {
+    const name = window.prompt('Nombre completo', employee.full_name);
+    if (name === null) return;
+    const phone = window.prompt('Telefono de contacto', employee.phone || '');
+    if (phone === null) return;
+    const hireDate = window.prompt('Fecha de ingreso (YYYY-MM-DD)', employee.hire_date || '');
+    if (hireDate === null) return;
+    await api.patch(`/employees/${employee.id}`, {
+      full_name: name,
+      phone: phone || null,
+      hire_date: hireDate || null,
+    });
     await onRefresh();
   };
 
@@ -665,6 +699,18 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
     if (pin === null) return;
     await api.patch(`/employees/${employee.id}`, { pin: pin || null });
     await onRefresh();
+  };
+
+  const handleDelete = async (employee) => {
+    const ok = window.confirm(`Eliminar empleado ${employee.full_name}?`);
+    if (!ok) return;
+    try {
+      await api.delete(`/employees/${employee.id}`);
+      await onRefresh();
+      onStatus('Empleado eliminado');
+    } catch (err) {
+      setError(err.response?.data?.error || 'No se pudo eliminar');
+    }
   };
 
   return (
@@ -689,6 +735,22 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
             />
           </div>
           <div className="field">
+            <label>Telefono de contacto</label>
+            <input
+              value={form.phone}
+              onChange={(event) => setForm({ ...form, phone: event.target.value })}
+              type="tel"
+            />
+          </div>
+          <div className="field">
+            <label>Fecha de ingreso</label>
+            <input
+              value={form.hire_date}
+              onChange={(event) => setForm({ ...form, hire_date: event.target.value })}
+              type="date"
+            />
+          </div>
+          <div className="field">
             <label>PIN (opcional)</label>
             <input
               value={form.pin}
@@ -708,6 +770,9 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
               <tr>
                 <th>Codigo</th>
                 <th>Nombre</th>
+                <th>Telefono</th>
+                <th>Ingreso</th>
+                <th>Baja</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -717,6 +782,9 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
                 <tr key={employee.id}>
                   <td>{employee.code}</td>
                   <td>{employee.full_name}</td>
+                  <td>{employee.phone || '-'}</td>
+                  <td>{formatDate(employee.hire_date)}</td>
+                  <td>{formatDate(employee.termination_date)}</td>
                   <td>{employee.is_active ? 'Activo' : 'Inactivo'}</td>
                   <td className="actions">
                     <button
@@ -724,12 +792,12 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
                       type="button"
                       onClick={() => handleToggle(employee)}
                     >
-                      {employee.is_active ? 'Desactivar' : 'Activar'}
+                      {employee.is_active ? 'Dar de baja' : 'Reactivar'}
                     </button>
                     <button
                       className="btn ghost"
                       type="button"
-                      onClick={() => handleRename(employee)}
+                      onClick={() => handleEdit(employee)}
                     >
                       Editar
                     </button>
@@ -739,6 +807,13 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
                       onClick={() => handlePin(employee)}
                     >
                       PIN
+                    </button>
+                    <button
+                      className="btn ghost"
+                      type="button"
+                      onClick={() => handleDelete(employee)}
+                    >
+                      Eliminar
                     </button>
                   </td>
                 </tr>

@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS employees (
   id SERIAL PRIMARY KEY,
   code TEXT NOT NULL UNIQUE,
   full_name TEXT NOT NULL,
+  phone TEXT,
+  hire_date DATE,
+  termination_date DATE,
   pin_hash TEXT,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
