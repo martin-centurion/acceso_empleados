@@ -1090,9 +1090,52 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
                 <span className="eyebrow">Sucursal</span>
                 <h3>{selectedBranch.name}</h3>
               </div>
-              <button className="btn ghost" type="button" onClick={closeBranchModal}>
-                Cerrar
-              </button>
+              <div className="modal-actions-inline">
+                <button
+                  className="icon-btn"
+                  type="button"
+                  onClick={() => handleDownloadBranchQr(selectedBranch)}
+                  aria-label="Descargar QR"
+                  title="Descargar QR"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path d="M352 96C352 78.3 337.7 64 320 64C302.3 64 288 78.3 288 96L288 306.7L246.6 265.3C234.1 252.8 213.8 252.8 201.3 265.3C188.8 277.8 188.8 298.1 201.3 310.6L297.3 406.6C309.8 419.1 330.1 419.1 342.6 406.6L438.6 310.6C451.1 298.1 451.1 277.8 438.6 265.3C426.1 252.8 405.8 252.8 393.3 265.3L352 306.7L352 96zM160 384C124.7 384 96 412.7 96 448L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 448C544 412.7 515.3 384 480 384L433.1 384L376.5 440.6C345.3 471.8 294.6 471.8 263.4 440.6L206.9 384L160 384zM464 440C477.3 440 488 450.7 488 464C488 477.3 477.3 488 464 488C450.7 488 440 477.3 440 464C440 450.7 450.7 440 464 440z" />
+                  </svg>
+                </button>
+                <button
+                  className="icon-btn"
+                  type="button"
+                  onClick={() => handleToggle(selectedBranch)}
+                  aria-label={selectedBranch.is_active ? 'Desactivar' : 'Activar'}
+                  title={selectedBranch.is_active ? 'Desactivar' : 'Activar'}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path d="M431.2 476.5L163.5 208.8C141.1 240.2 128 278.6 128 320C128 426 214 512 320 512C361.5 512 399.9 498.9 431.2 476.5zM476.5 431.2C498.9 399.8 512 361.4 512 320C512 214 426 128 320 128C278.5 128 240.1 141.1 208.8 163.5L476.5 431.2zM64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320z" />
+                  </svg>
+                </button>
+                <button
+                  className="icon-btn danger"
+                  type="button"
+                  onClick={() => handleDelete(selectedBranch)}
+                  aria-label="Eliminar"
+                  title="Eliminar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path d="M262.2 48C248.9 48 236.9 56.3 232.2 68.8L216 112L120 112C106.7 112 96 122.7 96 136C96 149.3 106.7 160 120 160L520 160C533.3 160 544 149.3 544 136C544 122.7 533.3 112 520 112L424 112L407.8 68.8C403.1 56.3 391.2 48 377.8 48L262.2 48zM128 208L128 512C128 547.3 156.7 576 192 576L448 576C483.3 576 512 547.3 512 512L512 208L464 208L464 512C464 520.8 456.8 528 448 528L192 528C183.2 528 176 520.8 176 512L176 208L128 208zM288 280C288 266.7 277.3 256 264 256C250.7 256 240 266.7 240 280L240 456C240 469.3 250.7 480 264 480C277.3 480 288 469.3 288 456L288 280zM400 280C400 266.7 389.3 256 376 256C362.7 256 352 266.7 352 280L352 456C352 469.3 362.7 480 376 480C389.3 480 400 469.3 400 456L400 280z" />
+                  </svg>
+                </button>
+                <button
+                  className="icon-btn"
+                  type="button"
+                  onClick={closeBranchModal}
+                  aria-label="Cerrar"
+                  title="Cerrar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path d="M352 96C352 78.3 337.7 64 320 64C302.3 64 288 78.3 288 96L288 306.7L246.6 265.3C234.1 252.8 213.8 252.8 201.3 265.3C188.8 277.8 188.8 298.1 201.3 310.6L297.3 406.6C309.8 419.1 330.1 419.1 342.6 406.6L438.6 310.6C451.1 298.1 451.1 277.8 438.6 265.3C426.1 252.8 405.8 252.8 393.3 265.3L352 306.7L352 96zM160 384C124.7 384 96 412.7 96 448L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 448C544 412.7 515.3 384 480 384L433.1 384L376.5 440.6C345.3 471.8 294.6 471.8 263.4 440.6L206.9 384L160 384zM464 440C477.3 440 488 450.7 488 464C488 477.3 477.3 488 464 488C450.7 488 440 477.3 440 464C440 450.7 450.7 440 464 440z" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="detail-grid">
               <div className="detail-item">
@@ -1114,31 +1157,6 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
               ) : (
                 <small className="muted">Genera el QR para compartirlo.</small>
               )}
-              <div className="qr-actions">
-                <button
-                  className="btn primary"
-                  type="button"
-                  onClick={() => handleDownloadBranchQr(selectedBranch)}
-                >
-                  Descargar QR
-                </button>
-              </div>
-            </div>
-            <div className="actions modal-actions">
-              <button
-                className="btn ghost"
-                type="button"
-                onClick={() => handleToggle(selectedBranch)}
-              >
-                {selectedBranch.is_active ? 'Desactivar' : 'Activar'}
-              </button>
-              <button
-                className="btn ghost"
-                type="button"
-                onClick={() => handleDelete(selectedBranch)}
-              >
-                Eliminar
-              </button>
             </div>
           </div>
         </div>
