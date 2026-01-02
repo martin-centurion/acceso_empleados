@@ -122,6 +122,9 @@ router.post('/public/check', async (req, res) => {
     const deviceTime = device_time ? new Date(device_time) : null;
     const deviceTimeValue = deviceTime && !Number.isNaN(deviceTime.getTime()) ? deviceTime : null;
 
+    const accuracyValue = parseNumber(accuracy);
+    const accuracyMeters = accuracyValue === null ? null : Math.round(accuracyValue);
+
     const { data: created, error: insertError } = await supabase
       .from('attendance_events')
       .insert({
@@ -131,7 +134,7 @@ router.post('/public/check', async (req, res) => {
         device_time: deviceTimeValue,
         lat: parseNumber(lat),
         lng: parseNumber(lng),
-        accuracy_m: parseNumber(accuracy),
+        accuracy_m: accuracyMeters,
       })
       .select('id, action, event_time')
       .single();
