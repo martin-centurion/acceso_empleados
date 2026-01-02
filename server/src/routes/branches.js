@@ -101,4 +101,21 @@ router.patch('/branches/:id', async (req, res) => {
   }
 });
 
+router.delete('/branches/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase.from('branches').delete().eq('id', id);
+    if (error) {
+      if (error.code === '23503') {
+        return res.status(409).json({ error: 'La sucursal tiene registros' });
+      }
+      throw error;
+    }
+    return res.status(204).send();
+  } catch (err) {
+    console.error('Failed to delete branch', err);
+    return res.status(500).json({ error: 'Failed to delete branch' });
+  }
+});
+
 module.exports = router;

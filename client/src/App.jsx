@@ -868,6 +868,19 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
     setQrImage(dataUrl);
   };
 
+  const handleDelete = async (branch) => {
+    const ok = window.confirm(`Eliminar sucursal ${branch.name}?`);
+    if (!ok) return;
+    setError('');
+    try {
+      await api.delete(`/branches/${branch.id}`);
+      await onRefresh();
+      onStatus('Sucursal eliminada');
+    } catch (err) {
+      setError(err.response?.data?.error || 'No se pudo eliminar');
+    }
+  };
+
   return (
     <section className="panel">
       <div className="split">
@@ -913,6 +926,9 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
                     </button>
                     <button className="btn ghost" type="button" onClick={() => handleToggle(branch)}>
                       {branch.is_active ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button className="btn ghost" type="button" onClick={() => handleDelete(branch)}>
+                      Eliminar
                     </button>
                   </td>
                 </tr>
