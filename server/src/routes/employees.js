@@ -133,11 +133,15 @@ router.patch('/employees/:id', async (req, res) => {
 router.delete('/employees/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const { error: eventsError } = await supabase
+      .from('attendance_events')
+      .delete()
+      .eq('employee_id', id);
+    if (eventsError) {
+      throw eventsError;
+    }
     const { error } = await supabase.from('employees').delete().eq('id', id);
     if (error) {
-      if (error.code === '23503') {
-        return res.status(409).json({ error: 'El empleado tiene registros' });
-      }
       throw error;
     }
     return res.status(204).send();

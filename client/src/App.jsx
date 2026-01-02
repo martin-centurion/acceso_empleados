@@ -1092,6 +1092,13 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
     await onRefresh({ ...filters, limit: 50 });
   };
 
+  const handleToday = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const nextFilters = { ...filters, from: today, to: today };
+    setFilters(nextFilters);
+    await onRefresh({ ...nextFilters, limit: 50 });
+  };
+
   const handleDownload = async () => {
     setLoading(true);
     try {
@@ -1114,7 +1121,7 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
 
   return (
     <section className="panel">
-      <div className="filters">
+      <div className="filters compact">
         <div className="field">
           <label>Desde</label>
           <input
@@ -1162,6 +1169,9 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
         <div className="filter-actions">
           <button className="btn ghost" type="button" onClick={handleApply}>
             Aplicar
+          </button>
+          <button className="btn ghost" type="button" onClick={handleToday}>
+            Hoy
           </button>
           <button className="btn primary" type="button" onClick={handleDownload} disabled={loading}>
             {loading ? 'Descargando...' : 'Exportar CSV'}

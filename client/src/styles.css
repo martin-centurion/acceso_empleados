@@ -658,6 +658,29 @@ td {
   margin-bottom: 24px;
 }
 
+.filters.compact {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 12px 24px rgba(13, 27, 42, 0.08);
+}
+
+.filters.compact label {
+  font-size: 12px;
+}
+
+.filters.compact input,
+.filters.compact select {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.filters.compact .btn {
+  padding: 9px 14px;
+  font-size: 13px;
+}
+
 .filter-actions {
   display: flex;
   gap: 10px;
