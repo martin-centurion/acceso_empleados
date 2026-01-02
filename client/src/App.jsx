@@ -771,21 +771,21 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
           </button>
         </form>
 
-        <div className="employee-list">
+        <div className="data-list">
           <h3>Empleados</h3>
           {employees.length === 0 ? (
             <p className="muted">No hay empleados cargados.</p>
           ) : (
-            <div className="employee-cards">
+            <div className="data-cards">
               {employees.map((employee) => (
                 <button
                   key={employee.id}
-                  className="employee-card"
+                  className="data-card"
                   type="button"
                   onClick={() => setSelectedEmployee(employee)}
                 >
-                  <span className="employee-card-title">{employee.full_name}</span>
-                  <span className="employee-card-code">Codigo: {employee.code}</span>
+                  <span className="data-card-title">{employee.full_name}</span>
+                  <span className="data-card-meta">Codigo: {employee.code}</span>
                 </button>
               ))}
             </div>
@@ -870,8 +870,17 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
   const [loading, setLoading] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
   const [qrImage, setQrImage] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [detailQrUrl, setDetailQrUrl] = useState('');
+  const [detailQrImage, setDetailQrImage] = useState('');
 
   const appUrl = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
+
+  const closeBranchModal = () => {
+    setSelectedBranch(null);
+    setDetailQrUrl('');
+    setDetailQrImage('');
+  };
 
   const handleCreate = async (event) => {
     event.preventDefault();
@@ -897,13 +906,14 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
   const handleToggle = async (branch) => {
     await api.patch(`/branches/${branch.id}`, { is_active: !branch.is_active });
     await onRefresh();
+    closeBranchModal();
   };
 
-  const handleShowQr = async (branch) => {
+  const handleShowBranchQr = async (branch) => {
     const url = `${appUrl}/#/check?token=${branch.qr_token}`;
-    setQrUrl(url);
+    setDetailQrUrl(url);
     const dataUrl = await QRCode.toDataURL(url, { width: 220, margin: 1 });
-    setQrImage(dataUrl);
+    setDetailQrImage(dataUrl);
   };
 
   const handleDelete = async (branch) => {
@@ -914,8 +924,19 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
       await api.delete(`/branches/${branch.id}`);
       await onRefresh();
       onStatus('Sucursal eliminada');
+      closeBranchModal();
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo eliminar');
+    }
+  };
+
+  const handleSelectBranch = async (branch) => {
+    setSelectedBranch(branch);
+    try {
+      await handleShowBranchQr(branch);
+    } catch (err) {
+      setDetailQrUrl('');
+      setDetailQrImage('');
     }
   };
 
@@ -941,40 +962,89 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
           )}
         </form>
 
-        <div className="table-wrap">
+        <div className="data-list">
           <h3>Sucursales</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Estado</th>
-                <th>QR</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
+          {branches.length === 0 ? (
+            <p className="muted">No hay sucursales cargadas.</p>
+          ) : (
+            <div className="data-cards">
               {branches.map((branch) => (
-                <tr key={branch.id}>
-                  <td>{branch.name}</td>
-                  <td>{branch.is_active ? 'Activa' : 'Inactiva'}</td>
-                  <td className="mono">{branch.qr_token}</td>
-                  <td className="actions">
-                    <button className="btn ghost" type="button" onClick={() => handleShowQr(branch)}>
-                      Ver QR
-                    </button>
-                    <button className="btn ghost" type="button" onClick={() => handleToggle(branch)}>
-                      {branch.is_active ? 'Desactivar' : 'Activar'}
-                    </button>
-                    <button className="btn ghost" type="button" onClick={() => handleDelete(branch)}>
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
+                <button
+                  key={branch.id}
+                  className="data-card"
+                  type="button"
+                  onClick={() => handleSelectBranch(branch)}
+                >
+                  <span className="data-card-title">{branch.name}</span>
+                  <span className="data-card-meta">
+                    Estado: {branch.is_active ? 'Activa' : 'Inactiva'}
+                  </span>
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
       </div>
+
+      {selectedBranch && (
+        <div className="modal-backdrop" onClick={closeBranchModal}>
+          <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <span className="eyebrow">Sucursal</span>
+                <h3>{selectedBranch.name}</h3>
+              </div>
+              <button className="btn ghost" type="button" onClick={closeBranchModal}>
+                Cerrar
+              </button>
+            </div>
+            <div className="detail-grid">
+              <div className="detail-item">
+                <span>Estado</span>
+                <strong>{selectedBranch.is_active ? 'Activa' : 'Inactiva'}</strong>
+              </div>
+              <div className="detail-item">
+                <span>Token QR</span>
+                <strong className="mono">{selectedBranch.qr_token}</strong>
+              </div>
+            </div>
+            <div className="qr-preview">
+              <p>QR para registrar:</p>
+              {detailQrImage ? (
+                <>
+                  <img src={detailQrImage} alt="QR sucursal" />
+                  <small className="mono">{detailQrUrl}</small>
+                </>
+              ) : (
+                <small className="muted">Genera el QR para compartirlo.</small>
+              )}
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => handleShowBranchQr(selectedBranch)}
+              >
+                Ver QR
+              </button>
+            </div>
+            <div className="actions modal-actions">
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => handleToggle(selectedBranch)}
+              >
+                {selectedBranch.is_active ? 'Desactivar' : 'Activar'}
+              </button>
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => handleDelete(selectedBranch)}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

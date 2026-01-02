@@ -506,16 +506,16 @@ small {
   overflow-x: auto;
 }
 
-.employee-list {
+.data-list {
   margin-top: 0;
 }
 
-.employee-cards {
+.data-cards {
   display: grid;
   gap: 12px;
 }
 
-.employee-card {
+.data-card {
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 16px;
@@ -526,17 +526,17 @@ small {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.employee-card:hover {
+.data-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 16px 28px rgba(13, 27, 42, 0.12);
 }
 
-.employee-card-title {
+.data-card-title {
   font-weight: 700;
   font-size: 15px;
 }
 
-.employee-card-code {
+.data-card-meta {
   display: block;
   margin-top: 6px;
   font-size: 12px;
