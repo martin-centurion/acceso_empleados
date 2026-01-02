@@ -1155,6 +1155,7 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
     branch_id: '',
   });
   const [loading, setLoading] = useState(false);
+  const [exportFormat, setExportFormat] = useState('csv');
 
   const formatAction = (value) => {
     if (value === 'IN') return 'Ingreso';
@@ -1176,14 +1177,20 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
   const handleDownload = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/reports/attendance.csv', {
+      const endpoint =
+        exportFormat === 'xlsx'
+          ? '/reports/attendance.xlsx'
+          : exportFormat === 'pdf'
+            ? '/reports/attendance.pdf'
+            : '/reports/attendance.csv';
+      const response = await api.get(endpoint, {
         params: filters,
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'attendance.csv');
+      link.setAttribute('download', `attendance.${exportFormat}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -1240,6 +1247,17 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
             ))}
           </select>
         </div>
+        <div className="field">
+          <label>Formato</label>
+          <select
+            value={exportFormat}
+            onChange={(event) => setExportFormat(event.target.value)}
+          >
+            <option value="csv">CSV</option>
+            <option value="xlsx">Excel (.xlsx)</option>
+            <option value="pdf">PDF</option>
+          </select>
+        </div>
         <div className="filter-actions">
           <button className="btn ghost" type="button" onClick={handleApply}>
             Aplicar
@@ -1248,7 +1266,7 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
             Hoy
           </button>
           <button className="btn primary" type="button" onClick={handleDownload} disabled={loading}>
-            {loading ? 'Descargando...' : 'Exportar CSV'}
+            {loading ? 'Descargando...' : 'Exportar'}
           </button>
         </div>
       </div>

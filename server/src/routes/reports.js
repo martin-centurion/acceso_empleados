@@ -1,4 +1,6 @@
 const express = require('express');
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit');
 const { supabase } = require('../supabase');
 const { toCsv } = require('../utils/csv');
 
@@ -77,11 +79,34 @@ function formatTimeLabel(value) {
   return timeFormatter.format(new Date(value));
 }
 
+function formatActionLabel(value) {
+  if (value === 'IN') return 'Ingreso';
+  if (value === 'OUT') return 'Salida';
+  return value || '';
+}
+
 function formatHours(totalSeconds) {
   const totalMinutes = Math.round(totalSeconds / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return `${hours}:${String(minutes).padStart(2, '0')}`;
+}
+
+function buildReportRows(events, dailyHours) {
+  return events.map((row) => ({
+    fecha: row.event_time ? formatDateLabel(row.event_time) : '',
+    hora: row.event_time ? formatTimeLabel(row.event_time) : '',
+    accion: formatActionLabel(row.action),
+    empleado_codigo: row.employee_code,
+    empleado_nombre: row.full_name,
+    sucursal: row.branch_name,
+    horas_trabajadas: row.event_time
+      ? formatHours(dailyHours.get(`${row.employee_id}-${getDateKey(row.event_time)}`) || 0)
+      : '',
+    lat: row.lat,
+    lng: row.lng,
+    precision_m: row.accuracy_m,
+  }));
 }
 
 function calculateDailyHours(events) {
@@ -179,21 +204,7 @@ router.get('/reports/attendance.csv', async (req, res) => {
     const filters = buildFilters(req.query || {});
     const events = await loadAttendanceEvents(filters);
     const dailyHours = calculateDailyHours(events);
-
-    const rows = events.map((row) => ({
-      fecha: row.event_time ? formatDateLabel(row.event_time) : '',
-      hora: row.event_time ? formatTimeLabel(row.event_time) : '',
-      accion: row.action,
-      empleado_codigo: row.employee_code,
-      empleado_nombre: row.full_name,
-      sucursal: row.branch_name,
-      horas_trabajadas: row.event_time
-        ? formatHours(dailyHours.get(`${row.employee_id}-${getDateKey(row.event_time)}`) || 0)
-        : '',
-      lat: row.lat,
-      lng: row.lng,
-      precision_m: row.accuracy_m,
-    }));
+    const rows = buildReportRows(events, dailyHours);
 
     const csv = toCsv(rows, [
       { key: 'fecha', label: 'fecha' },
@@ -213,6 +224,108 @@ router.get('/reports/attendance.csv', async (req, res) => {
     return res.send(csv);
   } catch (err) {
     console.error('Failed to export attendance report', err);
+    return res.status(500).json({ error: 'Failed to export attendance report' });
+  }
+});
+
+router.get('/reports/attendance.xlsx', async (req, res) => {
+  try {
+    const filters = buildFilters(req.query || {});
+    const events = await loadAttendanceEvents(filters);
+    const dailyHours = calculateDailyHours(events);
+    const rows = buildReportRows(events, dailyHours);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Registros');
+    worksheet.columns = [
+      { header: 'Fecha', key: 'fecha', width: 18 },
+      { header: 'Hora', key: 'hora', width: 10 },
+      { header: 'Accion', key: 'accion', width: 12 },
+      { header: 'Codigo', key: 'empleado_codigo', width: 14 },
+      { header: 'Empleado', key: 'empleado_nombre', width: 26 },
+      { header: 'Sucursal', key: 'sucursal', width: 20 },
+      { header: 'Horas', key: 'horas_trabajadas', width: 12 },
+      { header: 'Lat', key: 'lat', width: 12 },
+      { header: 'Lng', key: 'lng', width: 12 },
+      { header: 'Precision', key: 'precision_m', width: 12 },
+    ];
+    rows.forEach((row) => worksheet.addRow(row));
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename="attendance.xlsx"');
+    const buffer = await workbook.xlsx.writeBuffer();
+    return res.send(Buffer.from(buffer));
+  } catch (err) {
+    console.error('Failed to export attendance report (xlsx)', err);
+    return res.status(500).json({ error: 'Failed to export attendance report' });
+  }
+});
+
+router.get('/reports/attendance.pdf', async (req, res) => {
+  try {
+    const filters = buildFilters(req.query || {});
+    const events = await loadAttendanceEvents(filters);
+    const dailyHours = calculateDailyHours(events);
+    const rows = buildReportRows(events, dailyHours);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="attendance.pdf"');
+
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    doc.pipe(res);
+
+    doc.fontSize(16).text('Reporte de asistencia');
+    doc.moveDown(0.5);
+
+    const columns = [
+      { label: 'Fecha', key: 'fecha', width: 90 },
+      { label: 'Hora', key: 'hora', width: 50 },
+      { label: 'Accion', key: 'accion', width: 70 },
+      { label: 'Empleado', key: 'empleado_nombre', width: 180 },
+      { label: 'Sucursal', key: 'sucursal', width: 150 },
+    ];
+
+    const startX = doc.x;
+    let y = doc.y + 10;
+    const rowHeight = 20;
+    const pageBottom = doc.page.height - doc.page.margins.bottom;
+
+    const drawRow = (row, isHeader = false) => {
+      doc.font(isHeader ? 'Helvetica-Bold' : 'Helvetica').fontSize(10);
+      let x = startX;
+      for (const column of columns) {
+        const value = row[column.key] || '';
+        doc.text(value, x, y, { width: column.width, ellipsis: true });
+        x += column.width;
+      }
+    };
+
+    drawRow(
+      columns.reduce((acc, col) => ({ ...acc, [col.key]: col.label }), {}),
+      true
+    );
+    y += rowHeight;
+
+    for (const row of rows) {
+      if (y + rowHeight > pageBottom) {
+        doc.addPage();
+        y = doc.y;
+        drawRow(
+          columns.reduce((acc, col) => ({ ...acc, [col.key]: col.label }), {}),
+          true
+        );
+        y += rowHeight;
+      }
+      drawRow(row);
+      y += rowHeight;
+    }
+
+    doc.end();
+  } catch (err) {
+    console.error('Failed to export attendance report (pdf)', err);
     return res.status(500).json({ error: 'Failed to export attendance report' });
   }
 });
