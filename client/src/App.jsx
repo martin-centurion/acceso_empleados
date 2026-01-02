@@ -1082,6 +1082,12 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
   });
   const [loading, setLoading] = useState(false);
 
+  const formatAction = (value) => {
+    if (value === 'IN') return 'Ingreso';
+    if (value === 'OUT') return 'Salida';
+    return value || '-';
+  };
+
   const handleApply = async () => {
     await onRefresh({ ...filters, limit: 50 });
   };
@@ -1178,7 +1184,7 @@ function ReportsPanel({ events, employees, branches, onRefresh }) {
             {events.map((event) => (
               <tr key={event.id}>
                 <td>{new Date(event.event_time).toLocaleString()}</td>
-                <td>{event.action}</td>
+                <td>{formatAction(event.action)}</td>
                 <td>{event.employee_code} - {event.full_name}</td>
                 <td>{event.branch_name}</td>
               </tr>
