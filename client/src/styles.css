@@ -572,8 +572,8 @@ small {
 }
 
 .modal-card .btn {
-  padding: 10px 14px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: 12px;
 }
 
 .detail-grid {
@@ -594,14 +594,25 @@ small {
 
 .actions.modal-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 14px;
 }
 
 .qr-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+@media (min-width: 900px) {
+  .actions.modal-actions,
+  .qr-actions {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    column-gap: 20px;
+    row-gap: 16px;
+  }
 }
 
 table {
