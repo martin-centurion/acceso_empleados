@@ -687,7 +687,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
   const handleEdit = async (employee) => {
     const name = window.prompt('Nombre completo', employee.full_name);
     if (name === null) return;
-    const phone = window.prompt('Telefono de contacto', employee.phone || '');
+    const phone = window.prompt('WhatsApp de contacto', employee.phone || '');
     if (phone === null) return;
     const hireDate = window.prompt('Fecha de ingreso (YYYY-MM-DD)', employee.hire_date || '');
     if (hireDate === null) return;
@@ -743,7 +743,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
             />
           </div>
           <div className="field">
-            <label>Telefono de contacto</label>
+            <label>WhatsApp de contacto</label>
             <input
               value={form.phone}
               onChange={(event) => setForm({ ...form, phone: event.target.value })}
@@ -811,7 +811,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
                 <strong>{selectedEmployee.code}</strong>
               </div>
               <div className="detail-item">
-                <span>Telefono</span>
+                <span>WhatsApp</span>
                 <strong>{selectedEmployee.phone || '-'}</strong>
               </div>
               <div className="detail-item">
@@ -1054,13 +1054,6 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
                 <small className="muted">Genera el QR para compartirlo.</small>
               )}
               <div className="qr-actions">
-                <button
-                  className="btn ghost"
-                  type="button"
-                  onClick={() => handleShowBranchQr(selectedBranch)}
-                >
-                  Ver QR
-                </button>
                 <button
                   className="btn primary"
                   type="button"
