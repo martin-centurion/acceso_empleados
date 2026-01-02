@@ -580,6 +580,8 @@ small {
   padding: 22px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .status-modal {
@@ -849,6 +851,8 @@ td {
   }
 
   .modal-card {
+    width: 100%;
+    max-height: 75vh;
     border-radius: 20px 20px 0 0;
   }
 }
