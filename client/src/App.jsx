@@ -76,6 +76,12 @@ function App() {
           <Route path="/scan" element={<ScanPage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Routes>
+        <footer className="app-footer">
+          <span>version 1.0.0 -</span>
+          <a href="https://mymdevelopers.com.ar/" target="_blank" rel="noreferrer">
+            Desarrollado por MyM Developers
+          </a>
+        </footer>
       </div>
     </HashRouter>
   );
