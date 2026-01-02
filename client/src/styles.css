@@ -571,6 +571,11 @@ small {
   margin-bottom: 16px;
 }
 
+.modal-card .btn {
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
 .detail-grid {
   display: grid;
   gap: 12px;
@@ -589,14 +594,14 @@ small {
 
 .actions.modal-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px;
 }
 
 .qr-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px;
 }
 
 table {
