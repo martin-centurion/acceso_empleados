@@ -882,6 +882,14 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
     setDetailQrImage('');
   };
 
+  const buildBranchQr = async (branch) => {
+    const url = `${appUrl}/#/check?token=${branch.qr_token}`;
+    const dataUrl = await QRCode.toDataURL(url, { width: 220, margin: 1 });
+    setDetailQrUrl(url);
+    setDetailQrImage(dataUrl);
+    return { url, dataUrl };
+  };
+
   const handleCreate = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -910,10 +918,17 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
   };
 
   const handleShowBranchQr = async (branch) => {
-    const url = `${appUrl}/#/check?token=${branch.qr_token}`;
-    setDetailQrUrl(url);
-    const dataUrl = await QRCode.toDataURL(url, { width: 220, margin: 1 });
-    setDetailQrImage(dataUrl);
+    await buildBranchQr(branch);
+  };
+
+  const handleDownloadBranchQr = async (branch) => {
+    const { dataUrl } = await buildBranchQr(branch);
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `qr-${branch.name || 'sucursal'}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   const handleDelete = async (branch) => {
@@ -1018,13 +1033,22 @@ function BranchesPanel({ branches, onRefresh, onStatus }) {
               ) : (
                 <small className="muted">Genera el QR para compartirlo.</small>
               )}
-              <button
-                className="btn ghost"
-                type="button"
-                onClick={() => handleShowBranchQr(selectedBranch)}
-              >
-                Ver QR
-              </button>
+              <div className="qr-actions">
+                <button
+                  className="btn ghost"
+                  type="button"
+                  onClick={() => handleShowBranchQr(selectedBranch)}
+                >
+                  Ver QR
+                </button>
+                <button
+                  className="btn primary"
+                  type="button"
+                  onClick={() => handleDownloadBranchQr(selectedBranch)}
+                >
+                  Descargar QR
+                </button>
+              </div>
             </div>
             <div className="actions modal-actions">
               <button
