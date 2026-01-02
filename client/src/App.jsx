@@ -639,6 +639,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const formatDate = (value) => {
     if (!value) return '-';
@@ -680,6 +681,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
       });
     }
     await onRefresh();
+    setSelectedEmployee(null);
   };
 
   const handleEdit = async (employee) => {
@@ -695,6 +697,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
       hire_date: hireDate || null,
     });
     await onRefresh();
+    setSelectedEmployee(null);
   };
 
   const handlePin = async (employee) => {
@@ -702,6 +705,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
     if (pin === null) return;
     await api.patch(`/employees/${employee.id}`, { pin: pin || null });
     await onRefresh();
+    setSelectedEmployee(null);
   };
 
   const handleDelete = async (employee) => {
@@ -711,6 +715,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
       await api.delete(`/employees/${employee.id}`);
       await onRefresh();
       onStatus('Empleado eliminado');
+      setSelectedEmployee(null);
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo eliminar');
     }
@@ -766,7 +771,7 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
           </button>
         </form>
 
-        <div className="table-wrap">
+        <div className="table-wrap employees-table">
           <h3>Empleados</h3>
           <table>
             <thead>
@@ -824,7 +829,96 @@ function EmployeesPanel({ employees, onRefresh, onStatus }) {
             </tbody>
           </table>
         </div>
+
+        <div className="employee-list-mobile">
+          <h3>Empleados</h3>
+          {employees.length === 0 ? (
+            <p className="muted">No hay empleados cargados.</p>
+          ) : (
+            <div className="employee-cards">
+              {employees.map((employee) => (
+                <button
+                  key={employee.id}
+                  className="employee-card"
+                  type="button"
+                  onClick={() => setSelectedEmployee(employee)}
+                >
+                  <span className="employee-card-title">{employee.full_name}</span>
+                  <span className="employee-card-code">Codigo: {employee.code}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {selectedEmployee && (
+        <div className="modal-backdrop" onClick={() => setSelectedEmployee(null)}>
+          <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <span className="eyebrow">Empleado</span>
+                <h3>{selectedEmployee.full_name}</h3>
+              </div>
+              <button className="btn ghost" type="button" onClick={() => setSelectedEmployee(null)}>
+                Cerrar
+              </button>
+            </div>
+            <div className="detail-grid">
+              <div className="detail-item">
+                <span>Codigo</span>
+                <strong>{selectedEmployee.code}</strong>
+              </div>
+              <div className="detail-item">
+                <span>Telefono</span>
+                <strong>{selectedEmployee.phone || '-'}</strong>
+              </div>
+              <div className="detail-item">
+                <span>Ingreso</span>
+                <strong>{formatDate(selectedEmployee.hire_date)}</strong>
+              </div>
+              <div className="detail-item">
+                <span>Baja</span>
+                <strong>{formatDate(selectedEmployee.termination_date)}</strong>
+              </div>
+              <div className="detail-item">
+                <span>Estado</span>
+                <strong>{selectedEmployee.is_active ? 'Activo' : 'Inactivo'}</strong>
+              </div>
+            </div>
+            <div className="actions modal-actions">
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => handleToggle(selectedEmployee)}
+              >
+                {selectedEmployee.is_active ? 'Dar de baja' : 'Reactivar'}
+              </button>
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => handleEdit(selectedEmployee)}
+              >
+                Editar
+              </button>
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => handlePin(selectedEmployee)}
+              >
+                PIN
+              </button>
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => handleDelete(selectedEmployee)}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
